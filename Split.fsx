@@ -5,6 +5,12 @@ type FilterResult<'a> = {
     Excluded: 'a seq;
     }
 
+let create elements =
+    {
+        Included = elements;
+        Excluded = Seq.empty;
+    }
+
 let split filter previousResults =
     let negatedFilter = not << filter
     
