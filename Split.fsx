@@ -5,8 +5,6 @@ type FilterResult<'a> = {
     Excluded: 'a seq;
     }
 
-type FileName = FileName of string
-
 let split filter previousResults =
     let negatedFilter = not << filter
     
