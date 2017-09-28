@@ -14,6 +14,10 @@ let create elements =
 let decompose previousResults = 
     previousResults.Included
 
+/// Split input by the filter function.  Included will contain all elements in
+/// Included of the input that pass the filter.  Excluded will be set to a sequence of 
+/// all elements that do not pass the filter.  Excluded elements in the input
+/// will be lost.
 let split filter previousResults =
     let negatedFilter = not << filter
     
@@ -69,6 +73,7 @@ let iterAndClear fileName = (iter fileName) >> clear
 
 let outputAndClear outputIncluded outputExcluded = (output outputIncluded outputExcluded) >> clear
 
+/// Clear Excluded and perform map on Included.
 let clearAndMap projection = clear >> (map projection)
 
 let clearAndGroupBy projection = clear >> (groupBy projection)
