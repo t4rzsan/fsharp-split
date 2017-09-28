@@ -11,6 +11,9 @@ let create elements =
         Excluded = Seq.empty;
     }
 
+let decompose previousResults = 
+    previousResults.Included
+
 let split filter previousResults =
     let negatedFilter = not << filter
     
@@ -19,10 +22,29 @@ let split filter previousResults =
         Excluded = previousResults.Included |> Seq.filter negatedFilter;
     }
 
-let map mapper previousResults =
+/// Appends the Excluded sequence to the included and clears Excluded.
+let merge previousResults =
     {
-        Included = previousResults.Included |> Seq.map mapper;
-        Excluded = previousResults.Excluded |> Seq.map mapper;
+        Included = previousResults.Excluded |> Seq.append previousResults.Included;
+        Excluded = Seq.empty
+    }
+
+let map projection previousResults =
+    {
+        Included = previousResults.Included |> Seq.map projection;
+        Excluded = previousResults.Excluded |> Seq.map projection;
+    }
+
+let groupBy projection previousResults =
+    {
+        Included = previousResults.Included |> Seq.groupBy projection;
+        Excluded = previousResults.Excluded |> Seq.groupBy projection;
+    }
+
+let collect mapping previousResults =
+    {
+        Included = previousResults.Included |> Seq.collect mapping;
+        Excluded = previousResults.Excluded |> Seq.collect mapping;
     }
 
 let iter action previousResults =
@@ -31,6 +53,13 @@ let iter action previousResults =
 
     previousResults
 
+let output outputIncluded outputExcluded previousResults =
+    previousResults.Included |> outputIncluded
+    previousResults.Excluded |> outputExcluded
+
+    previousResults
+
+/// Clears the Excluded sequence.
 let clear previousResults =
     {
         previousResults with Excluded = Seq.empty
@@ -38,4 +67,9 @@ let clear previousResults =
 
 let iterAndClear fileName = (iter fileName) >> clear
 
-let clearAndMap mapper = clear >> (map mapper)
+let outputAndClear outputIncluded outputExcluded = (output outputIncluded outputExcluded) >> clear
+
+let clearAndMap projection = clear >> (map projection)
+
+let clearAndGroupBy projection = clear >> (groupBy projection)
+
