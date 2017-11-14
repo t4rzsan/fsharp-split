@@ -11,6 +11,7 @@ let create elements =
         Excluded = Seq.empty;
     }
 
+/// Returns the Included sequence.
 let decompose previousResults = 
     previousResults.Included
 

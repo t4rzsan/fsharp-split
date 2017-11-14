@@ -1,12 +1,9 @@
 type FilterResult<'a> = {
-    Name: string;
     Included: 'a;
     Excluded: 'a;
 }
 
-type FilterResultBuilder(printer) =
-    member this.Printer = printer
-
+type FilterResultBuilder() =
     member this.Bind(m, f) = 
         m.Included |> f
 
@@ -15,18 +12,14 @@ type FilterResultBuilder(printer) =
 
 let filter = FilterResultBuilder()
 
-let filterEven x =
-    let f n = (n % 2) = 0;
-
+let split predicate x =
     {
-        Name= "even";
-        Included = x |> Seq.filter f;
-        Excluded = x |> Seq.filter (not << f)
+        Included = x |> Seq.filter predicate;
+        Excluded = x |> Seq.filter (not << predicate)
     }
 
 let map mapping x =
     {
-        Name = "map";
         Included = x |> Seq.map mapping;
         Excluded = x |> Seq.map mapping;
     }
@@ -34,16 +27,16 @@ let map mapping x =
 let testFilter x =
     filter
         {
-            let! a = x |> filterEven
+            let! a = x |> split(fun n -> (n % 2) = 0)
             let! b = a |> map (sprintf "Nummer %d")
             return b
         }    
 
 let evens =
     seq { 1 .. 7 }
-    |> filterEven
+    |> testFilter
 
-evens.Included
-|> Seq.iter(fun n -> printfn "%d" n)
+evens
+|> Seq.iter(fun n -> printfn "%A" n)
 
 
