@@ -15,13 +15,12 @@ let create elements =
 let decompose previousResults = 
     previousResults.Included
 
-/// Split input by the filter function.  Included will contain all elements in
+/// Splits input by the filter function.  Included will contain all elements in
 /// Included of the input that pass the filter.  Excluded will be set to a sequence of 
 /// all elements that do not pass the filter.  Excluded elements in the input
 /// will be lost.
 let split filter previousResults =
     let negatedFilter = not << filter
-    
     {
         Included = previousResults.Included |> Seq.filter filter;
         Excluded = previousResults.Included |> Seq.filter negatedFilter;
@@ -38,6 +37,12 @@ let map projection previousResults =
     {
         Included = previousResults.Included |> Seq.map projection;
         Excluded = previousResults.Excluded |> Seq.map projection;
+    }
+
+let sortBy projection previousResults =
+    {
+        Included = previousResults.Included |> Seq.sortBy projection;
+        Excluded = previousResults.Excluded |> Seq.sortBy projection;
     }
 
 let groupBy projection previousResults =
@@ -71,6 +76,8 @@ let clear previousResults =
     }    
 
 let iterAndClear fileName = (iter fileName) >> clear
+
+let splitAndClear filter = (split filter) >> clear
 
 let outputAndClear outputIncluded outputExcluded = (output outputIncluded outputExcluded) >> clear
 
