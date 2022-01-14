@@ -1,88 +1,77 @@
-module Split
+module Split =
+    type Split<'a> =
+        { Included: 'a list
+          Excluded: 'a list }
 
-type FilterResult<'a> = {
-    Included: 'a seq;
-    Excluded: 'a seq;
-    }
+    /// Split a list into two lists, one containing the included items, and the other containing the excluded items.
+    let create predicate (l: 'a list) =
+        let rec doSplit (split: Split<'a>) (l: 'a list) =
+            match l with
+            | [] -> split
+            | x :: xs ->
+                if x |> predicate then
+                    doSplit { split with Included = [x] |> List.append split.Included } xs
+                else
+                    doSplit { split with Excluded = [x] |> List.append split.Excluded } xs
+        
+        doSplit { Included = []; Excluded = [] } l
 
-let create elements =
-    {
-        Included = elements;
-        Excluded = Seq.empty;
-    }
+    let ofList list =
+        { Included = list
+          Excluded = [] }    
 
-/// Returns the Included sequence.
-let decompose previousResults = 
-    previousResults.Included
+    let recreate predicate split =
+        split.Included |> create predicate
 
-/// Splits input by the filter function.  Included will contain all elements in
-/// Included of the input that pass the filter.  Excluded will be set to a sequence of 
-/// all elements that do not pass the filter.  Excluded elements in the input
-/// will be lost.
-let split filter previousResults =
-    let negatedFilter = not << filter
-    {
-        Included = previousResults.Included |> Seq.filter filter;
-        Excluded = previousResults.Included |> Seq.filter negatedFilter;
-    }
+    let decompose split =
+        split.Included
 
-/// Appends the Excluded sequence to the included and clears Excluded.
-let merge previousResults =
-    {
-        Included = previousResults.Excluded |> Seq.append previousResults.Included;
-        Excluded = Seq.empty
-    }
+    let switch split =
+        { Included = split.Excluded
+          Excluded = split.Included }
 
-let map projection previousResults =
-    {
-        Included = previousResults.Included |> Seq.map projection;
-        Excluded = previousResults.Excluded |> Seq.map projection;
-    }
+    let merge split =
+        { Included = split.Excluded |> List.append split.Included
+          Excluded = [] }
 
-let sortBy projection previousResults =
-    {
-        Included = previousResults.Included |> Seq.sortBy projection;
-        Excluded = previousResults.Excluded |> Seq.sortBy projection;
-    }
+    let clear split =
+        { split with Excluded = [] }
 
-let groupBy projection previousResults =
-    {
-        Included = previousResults.Included |> Seq.groupBy projection;
-        Excluded = previousResults.Excluded |> Seq.groupBy projection;
-    }
+    let map mapping split =
+        { Included = split.Included |> List.map mapping
+          Excluded = split.Excluded |> List.map mapping }
 
-let collect mapping previousResults =
-    {
-        Included = previousResults.Included |> Seq.collect mapping;
-        Excluded = previousResults.Excluded |> Seq.collect mapping;
-    }
+    let choose chooser split =
+        { Included = split.Included |> List.choose chooser
+          Excluded = split.Excluded |> List.choose chooser }
 
-let iter action previousResults =
-    previousResults.Included |> Seq.iter action
-    previousResults.Excluded |> Seq.iter action
+    let filter predicate split =
+        { Included = split.Included |> List.filter predicate
+          Excluded = split.Excluded |> List.filter predicate }
 
-    previousResults
+    let sortBy projection split =
+        { Included = split.Included |> List.sortBy projection
+          Excluded = split.Excluded |> List.sortBy projection }
 
-let output outputIncluded outputExcluded previousResults =
-    previousResults.Included |> outputIncluded
-    previousResults.Excluded |> outputExcluded
+    let sortByDescending projection split =
+        { Included = split.Included |> List.sortByDescending projection
+          Excluded = split.Excluded |> List.sortByDescending projection }
 
-    previousResults
+    let collect mapping split =
+        { Included = split.Included |> List.collect mapping
+          Excluded = split.Excluded |> List.collect mapping }
 
-/// Clears the Excluded sequence.
-let clear previousResults =
-    {
-        previousResults with Excluded = Seq.empty
-    }    
+    let outputIncluded printer split =
+        split.Included
+        |> printer
 
-let iterAndClear fileName = (iter fileName) >> clear
+        split
 
-let splitAndClear filter = (split filter) >> clear
+    let outputExcluded printer split =
+        split.Excluded
+        |> printer
 
-let outputAndClear outputIncluded outputExcluded = (output outputIncluded outputExcluded) >> clear
+        split
 
-/// Clear Excluded and perform map on Included.
-let clearAndMap projection = clear >> (map projection)
-
-let clearAndGroupBy projection = clear >> (groupBy projection)
-
+    let outputIncludedAndClear printer =
+        (outputIncluded printer) >> clear
