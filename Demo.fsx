@@ -8,5 +8,5 @@ let printer title l =
 |> Split.outputExcluded (printer "Less than 10")
 |> Split.recreate (fun x -> (x % 2) = 0)
 |> Split.outputExcluded (printer "Odd")
-|> Split.switch
+|> Split.swap
 |> Split.outputExcluded (printer "Even")
