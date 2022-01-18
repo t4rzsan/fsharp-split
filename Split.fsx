@@ -2,6 +2,20 @@ type Split<'a> =
     { Included: 'a list
       Excluded: 'a list }
 
+/// Split a list into two lists, one containing the included items, and the other containing the excluded items.
+/// This is similar to List.Partition (https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-listmodule.html#partition).
+let create predicate (l: 'a list) =
+    let rec doSplit (split: Split<'a>) (l: 'a list) =
+        match l with
+        | [] -> split
+        | x :: xs ->
+            if x |> predicate then
+                doSplit { split with Included = [x] |> List.append split.Included } xs
+            else
+                doSplit { split with Excluded = [x] |> List.append split.Excluded } xs
+    
+    doSplit { Included = []; Excluded = [] } l
+
 // Create a new split from a list and create a split with Included and Excluded
 // appended from the existing split and the new split.
 let append predicate split source =
@@ -17,28 +31,33 @@ let choose chooser split =
 let clear split =
     { split with Excluded = [] }
 
-/// Split a list into two lists, one containing the included items, and the other containing the excluded items.
-/// This is similar to List.Partition (https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-listmodule.html#partition).
-let create predicate (l: 'a list) =
-    let rec doSplit (split: Split<'a>) (l: 'a list) =
-        match l with
-        | [] -> split
-        | x :: xs ->
-            if x |> predicate then
-                doSplit { split with Included = [x] |> List.append split.Included } xs
-            else
-                doSplit { split with Excluded = [x] |> List.append split.Excluded } xs
-    
-    doSplit { Included = []; Excluded = [] } l
+let collect mapping split =
+    { Included = split.Included |> List.collect mapping
+      Excluded = split.Excluded |> List.collect mapping }
 
-/// Create a Split from a list.  The Included property will contain the items in the input list.
 /// Return the Included list of a Split.
 let decompose split =
     split.Included
 
+let distinct split =
+    { Included = split.Included |> List.distinct
+      Excluded = split.Excluded |> List.distinct }
+
+let distinctBy projection split =
+    { Included = split.Included |> List.distinctBy projection
+      Excluded = split.Excluded |> List.distinctBy projection }
+
 let filter predicate split =
     { Included = split.Included |> List.filter predicate
       Excluded = split.Excluded |> List.filter predicate }
+
+let groupBy projection split =
+    { Included = split.Included |> List.groupBy projection
+      Excluded = split.Excluded |> List.groupBy projection }
+
+let indexed split =
+    { Included = split.Included |> List.indexed
+      Excluded = split.Excluded |> List.indexed }
 
 /// Create a split with the Excluded list appnened to Included list.
 /// The Exluded list will be empty.
@@ -50,6 +69,7 @@ let merge split =
     { Included = split.Excluded |> List.append split.Included
       Excluded = [] }
 
+/// Create a Split from a list.  The Included property will contain the items in the input list.
 let ofList source =
     { Included = source
       Excluded = [] }
@@ -78,6 +98,14 @@ let outputIncludedAndClear printer =
 let recreate predicate split =
     split.Included |> create predicate
 
+let rev split =
+    { Included = split.Included |> List.rev
+      Excluded = split.Excluded |> List.rev }
+
+let sort split =
+    { Included = split.Included |> List.sort
+      Excluded = split.Excluded |> List.sort }
+
 let sortBy projection split =
     { Included = split.Included |> List.sortBy projection
       Excluded = split.Excluded |> List.sortBy projection }
@@ -85,6 +113,10 @@ let sortBy projection split =
 let sortByDescending projection split =
     { Included = split.Included |> List.sortByDescending projection
       Excluded = split.Excluded |> List.sortByDescending projection }
+
+let sortDescending split =
+    { Included = split.Included |> List.sortDescending
+      Excluded = split.Excluded |> List.sortDescending }
 
 let splitAndOutputExcluded predicate printer =
     create predicate
