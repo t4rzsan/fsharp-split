@@ -59,12 +59,12 @@ let indexed split =
     { Included = split.Included |> List.indexed
       Excluded = split.Excluded |> List.indexed }
 
-/// Create a split with the Excluded list appnened to Included list.
-/// The Exluded list will be empty.
 let map mapping split =
     { Included = split.Included |> List.map mapping
       Excluded = split.Excluded |> List.map mapping }
 
+/// Create a split with the Excluded list appended to Included list.
+/// The Exluded list will be empty.
 let merge split =
     { Included = split.Excluded |> List.append split.Included
       Excluded = [] }
