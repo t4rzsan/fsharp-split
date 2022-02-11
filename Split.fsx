@@ -23,23 +23,40 @@ let choose chooser split =
 let clear split =
     { split with Excluded = [] }
 
-/// Create a Split from a list.  The Included property will contain the items in the input list.
+let collect mapping split =
+    { Included = split.Included |> List.collect mapping
+      Excluded = split.Excluded |> List.collect mapping }
+
 /// Return the Included list of a Split.
 let decompose split =
     split.Included
 
-/// Create a Split from an existing Split where the items has been filtered with the given predicate.
+let distinct split =
+    { Included = split.Included |> List.distinct
+      Excluded = split.Excluded |> List.distinct }
+
+let distinctBy projection split =
+    { Included = split.Included |> List.distinctBy projection
+      Excluded = split.Excluded |> List.distinctBy projection }
+
 let filter predicate split =
     { Included = split.Included |> List.filter predicate
       Excluded = split.Excluded |> List.filter predicate }
 
-/// Create a Split with the Excluded list appnened to Included list.
-/// The Exluded list will be empty.
+let groupBy projection split =
+    { Included = split.Included |> List.groupBy projection
+      Excluded = split.Excluded |> List.groupBy projection }
+
+let indexed split =
+    { Included = split.Included |> List.indexed
+      Excluded = split.Excluded |> List.indexed }
+
 let map mapping split =
     { Included = split.Included |> List.map mapping
       Excluded = split.Excluded |> List.map mapping }
 
-/// Create a Split with the Excluded list appended to the Included list.
+/// Create a split with the Excluded list appended to Included list.
+/// The Exluded list will be empty.
 let merge split =
     { Included = split.Excluded |> List.append split.Included
       Excluded = [] }
@@ -73,6 +90,14 @@ let outputIncludedAndClear printer =
 let recreate predicate split =
     split.Included |> create predicate
 
+let rev split =
+    { Included = split.Included |> List.rev
+      Excluded = split.Excluded |> List.rev }
+
+let sort split =
+    { Included = split.Included |> List.sort
+      Excluded = split.Excluded |> List.sort }
+
 let sortBy projection split =
     { Included = split.Included |> List.sortBy projection
       Excluded = split.Excluded |> List.sortBy projection }
@@ -80,6 +105,10 @@ let sortBy projection split =
 let sortByDescending projection split =
     { Included = split.Included |> List.sortByDescending projection
       Excluded = split.Excluded |> List.sortByDescending projection }
+
+let sortDescending split =
+    { Included = split.Included |> List.sortDescending
+      Excluded = split.Excluded |> List.sortDescending }
 
 let splitAndOutputExcluded predicate printer =
     create predicate
